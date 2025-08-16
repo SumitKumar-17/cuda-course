@@ -1,27 +1,31 @@
 #include <cuda_runtime.h>
 #include <cudnn.h>
+#include <math.h>
 #include <stdio.h>
 #include <stdlib.h>
-#include <math.h>
 
-#define CHECK_CUDA(call) { \
-    cudaError_t err = call; \
-    if (err != cudaSuccess) { \
-        fprintf(stderr, "CUDA error in file '%s' in line %i : %s.\n", __FILE__, __LINE__, cudaGetErrorString(err)); \
-        exit(EXIT_FAILURE); \
-    } \
-}
+#define CHECK_CUDA(call)                                                                           \
+    {                                                                                              \
+        cudaError_t err = call;                                                                    \
+        if (err != cudaSuccess) {                                                                  \
+            fprintf(stderr, "CUDA error in file '%s' in line %i : %s.\n", __FILE__, __LINE__,      \
+                    cudaGetErrorString(err));                                                      \
+            exit(EXIT_FAILURE);                                                                    \
+        }                                                                                          \
+    }
 
-#define CHECK_CUDNN(call) { \
-    cudnnStatus_t err = call; \
-    if (err != CUDNN_STATUS_SUCCESS) { \
-        fprintf(stderr, "cuDNN error in file '%s' in line %i : %s.\n", __FILE__, __LINE__, cudnnGetErrorString(err)); \
-        exit(EXIT_FAILURE); \
-    } \
-}
+#define CHECK_CUDNN(call)                                                                          \
+    {                                                                                              \
+        cudnnStatus_t err = call;                                                                  \
+        if (err != CUDNN_STATUS_SUCCESS) {                                                         \
+            fprintf(stderr, "cuDNN error in file '%s' in line %i : %s.\n", __FILE__, __LINE__,     \
+                    cudnnGetErrorString(err));                                                     \
+            exit(EXIT_FAILURE);                                                                    \
+        }                                                                                          \
+    }
 
 // Naive CUDA kernel for tanh activation
-__global__ void naiveTanhKernel(float* input, float* output, int size) {
+__global__ void naiveTanhKernel(float *input, float *output, int size) {
     int idx = blockIdx.x * blockDim.x + threadIdx.x;
     if (idx < size) {
         output[idx] = tanhf(input[idx]);
@@ -34,14 +38,14 @@ float cpuTanh(float x) {
 }
 
 // Function to initialize data
-void initializeData(float* data, int size) {
+void initializeData(float *data, int size) {
     for (int i = 0; i < size; ++i) {
-        data[i] = (float)rand() / RAND_MAX * 2.0f - 1.0f;  // Random values between -1 and 1
+        data[i] = (float)rand() / RAND_MAX * 2.0f - 1.0f; // Random values between -1 and 1
     }
 }
 
 // Function to verify results
-bool verifyResults(float* cpu_output, float* gpu_output, int size, float tolerance = 1e-5) {
+bool verifyResults(float *cpu_output, float *gpu_output, int size, float tolerance = 1e-5) {
     for (int i = 0; i < size; ++i) {
         if (fabs(cpu_output[i] - gpu_output[i]) > tolerance) {
             printf("Mismatch at index %d: CPU = %f, GPU = %f\n", i, cpu_output[i], gpu_output[i]);
@@ -61,10 +65,10 @@ int main() {
 
     // Allocate host memory
     float *h_input, *h_output_naive, *h_output_cudnn, *h_output_cpu;
-    h_input = (float*)malloc(tensor_size * sizeof(float));
-    h_output_naive = (float*)malloc(tensor_size * sizeof(float));
-    h_output_cudnn = (float*)malloc(tensor_size * sizeof(float));
-    h_output_cpu = (float*)malloc(tensor_size * sizeof(float));
+    h_input = (float *)malloc(tensor_size * sizeof(float));
+    h_output_naive = (float *)malloc(tensor_size * sizeof(float));
+    h_output_cudnn = (float *)malloc(tensor_size * sizeof(float));
+    h_output_cpu = (float *)malloc(tensor_size * sizeof(float));
 
     // Initialize input data
     initializeData(h_input, tensor_size);
@@ -126,16 +130,16 @@ int main() {
 
     // Warmup runs for cuDNN
     for (int i = 0; i < num_warmup; ++i) {
-        CHECK_CUDNN(cudnnActivationForward(cudnn, activation_descriptor, &alpha, input_descriptor, d_input,
-                                           &beta, input_descriptor, d_output_cudnn));
+        CHECK_CUDNN(cudnnActivationForward(cudnn, activation_descriptor, &alpha, input_descriptor,
+                                           d_input, &beta, input_descriptor, d_output_cudnn));
     }
     CHECK_CUDA(cudaDeviceSynchronize());
 
     // Benchmark runs for cuDNN
     for (int i = 0; i < num_benchmark; ++i) {
         CHECK_CUDA(cudaEventRecord(start));
-        CHECK_CUDNN(cudnnActivationForward(cudnn, activation_descriptor, &alpha, input_descriptor, d_input,
-                                           &beta, input_descriptor, d_output_cudnn));
+        CHECK_CUDNN(cudnnActivationForward(cudnn, activation_descriptor, &alpha, input_descriptor,
+                                           d_input, &beta, input_descriptor, d_output_cudnn));
         CHECK_CUDA(cudaEventRecord(stop));
         CHECK_CUDA(cudaEventSynchronize(stop));
         CHECK_CUDA(cudaEventElapsedTime(&cudnn_times[i], start, stop));
@@ -151,8 +155,10 @@ int main() {
     avg_cudnn_time /= num_benchmark;
 
     // Copy results back to host
-    CHECK_CUDA(cudaMemcpy(h_output_naive, d_output_naive, tensor_size * sizeof(float), cudaMemcpyDeviceToHost));
-    CHECK_CUDA(cudaMemcpy(h_output_cudnn, d_output_cudnn, tensor_size * sizeof(float), cudaMemcpyDeviceToHost));
+    CHECK_CUDA(cudaMemcpy(h_output_naive, d_output_naive, tensor_size * sizeof(float),
+                          cudaMemcpyDeviceToHost));
+    CHECK_CUDA(cudaMemcpy(h_output_cudnn, d_output_cudnn, tensor_size * sizeof(float),
+                          cudaMemcpyDeviceToHost));
 
     // CPU verification
     for (int i = 0; i < tensor_size; ++i) {

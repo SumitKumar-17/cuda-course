@@ -10,8 +10,8 @@
 
 int main() {
     // Initialize pointer to NULL
-    int* ptr = NULL;
-    printf("1. Initial ptr value: %p\n", (void*)ptr);
+    int *ptr = NULL;
+    printf("1. Initial ptr value: %p\n", (void *)ptr);
 
     // Check for NULL before using
     if (ptr == NULL) {
@@ -25,7 +25,7 @@ int main() {
         return 1;
     }
 
-    printf("4. After allocation, ptr value: %p\n", (void*)ptr);
+    printf("4. After allocation, ptr value: %p\n", (void *)ptr);
 
     // Safe to use ptr after NULL check
     *ptr = 42;
@@ -33,9 +33,9 @@ int main() {
 
     // Clean up
     free(ptr);
-    ptr = NULL;  // Set to NULL after freeing
+    ptr = NULL; // Set to NULL after freeing
 
-    printf("6. After free, ptr value: %p\n", (void*)ptr);
+    printf("6. After free, ptr value: %p\n", (void *)ptr);
 
     // Demonstrate safety of NULL check after free
     if (ptr == NULL) {

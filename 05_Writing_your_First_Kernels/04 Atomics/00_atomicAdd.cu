@@ -5,7 +5,7 @@
 #define NUM_BLOCKS 1000
 
 // Kernel without atomics (incorrect)
-__global__ void incrementCounterNonAtomic(int* counter) {
+__global__ void incrementCounterNonAtomic(int *counter) {
     // not locked
     int old = *counter;
     int new_value = old + 1;
@@ -14,7 +14,7 @@ __global__ void incrementCounterNonAtomic(int* counter) {
 }
 
 // Kernel with atomics (correct)
-__global__ void incrementCounterAtomic(int* counter) {
+__global__ void incrementCounterAtomic(int *counter) {
     int a = atomicAdd(counter, 1);
 }
 
@@ -24,8 +24,8 @@ int main() {
     int *d_counterNonAtomic, *d_counterAtomic;
 
     // Allocate device memory
-    cudaMalloc((void**)&d_counterNonAtomic, sizeof(int));
-    cudaMalloc((void**)&d_counterAtomic, sizeof(int));
+    cudaMalloc((void **)&d_counterNonAtomic, sizeof(int));
+    cudaMalloc((void **)&d_counterAtomic, sizeof(int));
 
     // Copy initial counter values to device
     cudaMemcpy(d_counterNonAtomic, &h_counterNonAtomic, sizeof(int), cudaMemcpyHostToDevice);

@@ -1,20 +1,34 @@
-#include <cuda_runtime.h>
-#include <cublas_v2.h>
-#include <cublasXt.h>
-#include <iostream>
 #include <chrono>
+#include <cublasXt.h>
+#include <cublas_v2.h>
+#include <cuda_runtime.h>
+#include <iostream>
 #include <vector>
 
-#define CHECK_CUDA(call) { cudaError_t err = call; if (err != cudaSuccess) { printf("CUDA error: %s, line %d\n", cudaGetErrorString(err), __LINE__); exit(1); } }
-#define CHECK_CUBLAS(call) { cublasStatus_t status = call; if (status != CUBLAS_STATUS_SUCCESS) { printf("CUBLAS error: %d, line %d\n", status, __LINE__); exit(1); } }
+#define CHECK_CUDA(call)                                                                           \
+    {                                                                                              \
+        cudaError_t err = call;                                                                    \
+        if (err != cudaSuccess) {                                                                  \
+            printf("CUDA error: %s, line %d\n", cudaGetErrorString(err), __LINE__);                \
+            exit(1);                                                                               \
+        }                                                                                          \
+    }
+#define CHECK_CUBLAS(call)                                                                         \
+    {                                                                                              \
+        cublasStatus_t status = call;                                                              \
+        if (status != CUBLAS_STATUS_SUCCESS) {                                                     \
+            printf("CUBLAS error: %d, line %d\n", status, __LINE__);                               \
+            exit(1);                                                                               \
+        }                                                                                          \
+    }
 
-void initMatrix(float* matrix, int rows, int cols) {
+void initMatrix(float *matrix, int rows, int cols) {
     for (int i = 0; i < rows * cols; ++i) {
         matrix[i] = static_cast<float>(rand()) / RAND_MAX;
     }
 }
 
-bool compareResults(float* result1, float* result2, int size, float tolerance) {
+bool compareResults(float *result1, float *result2, int size, float tolerance) {
     for (int i = 0; i < size; ++i) {
         float diff = std::abs(result1[i] - result2[i]);
         float max_val = std::max(std::abs(result1[i]), std::abs(result2[i]));
@@ -37,10 +51,10 @@ int main() {
     size_t size_B = K * N * sizeof(float);
     size_t size_C = M * N * sizeof(float);
 
-    float *h_A = (float*)malloc(size_A);
-    float *h_B = (float*)malloc(size_B);
-    float *h_C_cublas = (float*)malloc(size_C);
-    float *h_C_cublasxt = (float*)malloc(size_C);
+    float *h_A = (float *)malloc(size_A);
+    float *h_B = (float *)malloc(size_B);
+    float *h_C_cublas = (float *)malloc(size_C);
+    float *h_C_cublasxt = (float *)malloc(size_C);
 
     initMatrix(h_A, M, K);
     initMatrix(h_B, K, N);
@@ -66,18 +80,21 @@ int main() {
         const float beta = 0.0f;
 
         // Warmup run
-        CHECK_CUBLAS(cublasSgemm(handle, CUBLAS_OP_N, CUBLAS_OP_N, N, M, K, &alpha, d_B, N, d_A, K, &beta, d_C, N));
+        CHECK_CUBLAS(cublasSgemm(handle, CUBLAS_OP_N, CUBLAS_OP_N, N, M, K, &alpha, d_B, N, d_A, K,
+                                 &beta, d_C, N));
         CHECK_CUDA(cudaDeviceSynchronize());
 
         // Benchmark runs
         for (int i = 0; i < num_runs; ++i) {
             auto start = std::chrono::high_resolution_clock::now();
-            CHECK_CUBLAS(cublasSgemm(handle, CUBLAS_OP_N, CUBLAS_OP_N, N, M, K, &alpha, d_B, N, d_A, K, &beta, d_C, N));
+            CHECK_CUBLAS(cublasSgemm(handle, CUBLAS_OP_N, CUBLAS_OP_N, N, M, K, &alpha, d_B, N, d_A,
+                                     K, &beta, d_C, N));
             CHECK_CUDA(cudaDeviceSynchronize());
             auto end = std::chrono::high_resolution_clock::now();
             std::chrono::duration<double> diff = end - start;
             cublas_times.push_back(diff.count());
-            std::cout << "CUBLAS run " << i+1 << " time: " << diff.count() << " seconds" << std::endl;
+            std::cout << "CUBLAS run " << i + 1 << " time: " << diff.count() << " seconds"
+                      << std::endl;
         }
 
         CHECK_CUDA(cudaMemcpy(h_C_cublas, d_C, size_C, cudaMemcpyDeviceToHost));
@@ -100,16 +117,19 @@ int main() {
         const float beta = 0.0f;
 
         // Warmup run
-        CHECK_CUBLAS(cublasXtSgemm(handle, CUBLAS_OP_N, CUBLAS_OP_N, N, M, K, &alpha, h_B, N, h_A, K, &beta, h_C_cublasxt, N));
+        CHECK_CUBLAS(cublasXtSgemm(handle, CUBLAS_OP_N, CUBLAS_OP_N, N, M, K, &alpha, h_B, N, h_A,
+                                   K, &beta, h_C_cublasxt, N));
 
         // Benchmark runs
         for (int i = 0; i < num_runs; ++i) {
             auto start = std::chrono::high_resolution_clock::now();
-            CHECK_CUBLAS(cublasXtSgemm(handle, CUBLAS_OP_N, CUBLAS_OP_N, N, M, K, &alpha, h_B, N, h_A, K, &beta, h_C_cublasxt, N));
+            CHECK_CUBLAS(cublasXtSgemm(handle, CUBLAS_OP_N, CUBLAS_OP_N, N, M, K, &alpha, h_B, N,
+                                       h_A, K, &beta, h_C_cublasxt, N));
             auto end = std::chrono::high_resolution_clock::now();
             std::chrono::duration<double> diff = end - start;
             cublasxt_times.push_back(diff.count());
-            std::cout << "CUBLAS-XT run " << i+1 << " time: " << diff.count() << " seconds" << std::endl;
+            std::cout << "CUBLAS-XT run " << i + 1 << " time: " << diff.count() << " seconds"
+                      << std::endl;
         }
 
         CHECK_CUBLAS(cublasXtDestroy(handle));

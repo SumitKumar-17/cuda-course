@@ -1,5 +1,5 @@
-#include <stdio.h>
 #include <math.h>
+#include <stdio.h>
 
 // x = [1.0, 2.0, 3.0]
 // softmax(x)
@@ -13,8 +13,6 @@
 // x = [1000.0, 0, -1000.0]
 
 // x2 = [0, -1000, -2000]
-
-
 
 void softmax(float *x, int n) {
     float max = x[0];

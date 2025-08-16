@@ -25,7 +25,7 @@
 #define radius 7
 #endif
 
-
 int main() {
-    printf("Area of circle with radius %d: %f\n", radius, AREA(radius));  // Output: Area of circle with radius 6.900000: 149.571708
+    printf("Area of circle with radius %d: %f\n", radius,
+           AREA(radius)); // Output: Area of circle with radius 6.900000: 149.571708
 }

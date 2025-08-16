@@ -1,5 +1,5 @@
 #include <stdio.h>
 
 int main() {
-  printf("boo x 2!\n");
+    printf("boo x 2!\n");
 }

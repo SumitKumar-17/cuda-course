@@ -1,10 +1,10 @@
 #include <cuda_runtime.h>
 #include <iostream>
 
-__global__ void matrixMultiply(float* A, float* B, float* C, int M, int N, int K) {
+__global__ void matrixMultiply(float *A, float *B, float *C, int M, int N, int K) {
     int row = blockIdx.y * blockDim.y + threadIdx.y;
     int col = blockIdx.x * blockDim.x + threadIdx.x;
-    
+
     if (row < M && col < N) {
         float sum = 0.0f;
         for (int i = 0; i < K; ++i) {
@@ -14,7 +14,6 @@ __global__ void matrixMultiply(float* A, float* B, float* C, int M, int N, int K
     }
 }
 int main() {
-
     // Define matrix dimensions
     const int M = 1024; // Number of rows in A and C
     const int N = 1024; // Number of columns in B and C
@@ -32,7 +31,6 @@ int main() {
     cudaMalloc(&d_A, size_A);
     cudaMalloc(&d_B, size_B);
     cudaMalloc(&d_C, size_C);
-
 
     // Kernel launch code
     dim3 blockDim(16, 16);
@@ -55,5 +53,4 @@ int main() {
     }
 
     return 0;
-
 }

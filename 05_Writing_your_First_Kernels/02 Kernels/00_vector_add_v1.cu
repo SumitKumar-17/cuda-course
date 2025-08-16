@@ -1,9 +1,9 @@
+#include <cuda_runtime.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <time.h>
-#include <cuda_runtime.h>
 
-#define N 10000000  // Vector size = 10 million
+#define N 10000000 // Vector size = 10 million
 #define BLOCK_SIZE 256
 
 // Example:
@@ -46,10 +46,10 @@ int main() {
     size_t size = N * sizeof(float);
 
     // Allocate host memory
-    h_a = (float*)malloc(size);
-    h_b = (float*)malloc(size);
-    h_c_cpu = (float*)malloc(size);
-    h_c_gpu = (float*)malloc(size);
+    h_a = (float *)malloc(size);
+    h_b = (float *)malloc(size);
+    h_c_cpu = (float *)malloc(size);
+    h_c_gpu = (float *)malloc(size);
 
     // Initialize vectors
     srand(time(NULL));
@@ -68,7 +68,7 @@ int main() {
     // Define grid and block dimensions
     int num_blocks = (N + BLOCK_SIZE - 1) / BLOCK_SIZE;
     // N = 1024, BLOCK_SIZE = 256, num_blocks = 4
-    // (N + BLOCK_SIZE - 1) / BLOCK_SIZE = ( (1025 + 256 - 1) / 256 ) = 1280 / 256 = 4 rounded 
+    // (N + BLOCK_SIZE - 1) / BLOCK_SIZE = ( (1025 + 256 - 1) / 256 ) = 1280 / 256 = 4 rounded
 
     // Warm-up runs
     printf("Performing warm-up runs...\n");
@@ -102,8 +102,8 @@ int main() {
     double gpu_avg_time = gpu_total_time / 20.0;
 
     // Print results
-    printf("CPU average time: %f milliseconds\n", cpu_avg_time*1000);
-    printf("GPU average time: %f milliseconds\n", gpu_avg_time*1000);
+    printf("CPU average time: %f milliseconds\n", cpu_avg_time * 1000);
+    printf("GPU average time: %f milliseconds\n", gpu_avg_time * 1000);
     printf("Speedup: %fx\n", cpu_avg_time / gpu_avg_time);
 
     // Verify results (optional)

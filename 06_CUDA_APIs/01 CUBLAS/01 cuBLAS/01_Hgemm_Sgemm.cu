@@ -1,36 +1,39 @@
 // dedicated for small handwritten matrices
-#include <stdio.h>
-#include <cuda_runtime.h>
 #include <cublas_v2.h>
 #include <cuda_fp16.h>
+#include <cuda_runtime.h>
+#include <stdio.h>
 
 #define M 3
 #define K 4
 #define N 2
 
-#define CHECK_CUDA(call) { \
-    cudaError_t err = call; \
-    if (err != cudaSuccess) { \
-        fprintf(stderr, "CUDA error in %s:%d: %s\n", __FILE__, __LINE__, cudaGetErrorString(err)); \
-        exit(EXIT_FAILURE); \
-    } \
-}
+#define CHECK_CUDA(call)                                                                           \
+    {                                                                                              \
+        cudaError_t err = call;                                                                    \
+        if (err != cudaSuccess) {                                                                  \
+            fprintf(stderr, "CUDA error in %s:%d: %s\n", __FILE__, __LINE__,                       \
+                    cudaGetErrorString(err));                                                      \
+            exit(EXIT_FAILURE);                                                                    \
+        }                                                                                          \
+    }
 
-#define CHECK_CUBLAS(call) { \
-    cublasStatus_t status = call; \
-    if (status != CUBLAS_STATUS_SUCCESS) { \
-        fprintf(stderr, "cuBLAS error in %s:%d: %d\n", __FILE__, __LINE__, status); \
-        exit(EXIT_FAILURE); \
-    } \
-}
+#define CHECK_CUBLAS(call)                                                                         \
+    {                                                                                              \
+        cublasStatus_t status = call;                                                              \
+        if (status != CUBLAS_STATUS_SUCCESS) {                                                     \
+            fprintf(stderr, "cuBLAS error in %s:%d: %d\n", __FILE__, __LINE__, status);            \
+            exit(EXIT_FAILURE);                                                                    \
+        }                                                                                          \
+    }
 
 #undef PRINT_MATRIX
-#define PRINT_MATRIX(mat, rows, cols) \
-    for (int i = 0; i < rows; i++) { \
-        for (int j = 0; j < cols; j++) \
-            printf("%8.3f ", mat[i * cols + j]); \
-        printf("\n"); \
-    } \
+#define PRINT_MATRIX(mat, rows, cols)                                                              \
+    for (int i = 0; i < rows; i++) {                                                               \
+        for (int j = 0; j < cols; j++)                                                             \
+            printf("%8.3f ", mat[i * cols + j]);                                                   \
+        printf("\n");                                                                              \
+    }                                                                                              \
     printf("\n");
 
 void cpu_matmul(float *A, float *B, float *C) {
@@ -63,11 +66,11 @@ int main() {
     CHECK_CUDA(cudaMemcpy(d_A, A, M * K * sizeof(float), cudaMemcpyHostToDevice));
     CHECK_CUDA(cudaMemcpy(d_B, B, K * N * sizeof(float), cudaMemcpyHostToDevice));
 
-    // row major A = 
+    // row major A =
     // 1.0 2.0 3.0 4.0
     // 5.0 6.0 7.0 8.0
 
-    // col major A = 
+    // col major A =
     // 1.0 5.0
     // 2.0 6.0
     // 3.0 7.0
@@ -78,10 +81,11 @@ int main() {
 
     // memory layout (col)
     // 1.0 5.0 2.0 6.0 3.0 7.0 4.0 8.0
-    
+
     // cuBLAS SGEMM
     float alpha = 1.0f, beta = 0.0f;
-    CHECK_CUBLAS(cublasSgemm(handle, CUBLAS_OP_N, CUBLAS_OP_N, N, M, K, &alpha, d_B, N, d_A, K, &beta, d_C, N));
+    CHECK_CUBLAS(cublasSgemm(handle, CUBLAS_OP_N, CUBLAS_OP_N, N, M, K, &alpha, d_B, N, d_A, K,
+                             &beta, d_C, N));
     CHECK_CUDA(cudaMemcpy(C_cublas_s, d_C, M * N * sizeof(float), cudaMemcpyDeviceToHost));
 
     // cuBLAS HGEMM
@@ -104,7 +108,8 @@ int main() {
     CHECK_CUDA(cudaMemcpy(d_B_h, B_h, K * N * sizeof(half), cudaMemcpyHostToDevice));
 
     __half alpha_h = __float2half(1.0f), beta_h = __float2half(0.0f);
-    CHECK_CUBLAS(cublasHgemm(handle, CUBLAS_OP_N, CUBLAS_OP_N, N, M, K, &alpha_h, d_B_h, N, d_A_h, K, &beta_h, d_C_h, N));
+    CHECK_CUBLAS(cublasHgemm(handle, CUBLAS_OP_N, CUBLAS_OP_N, N, M, K, &alpha_h, d_B_h, N, d_A_h,
+                             K, &beta_h, d_C_h, N));
 
     // Copy result back to host and convert to float
     half C_h[M * N];

@@ -12,7 +12,7 @@
 // Kernel without loop unrolling
 __global__ void vectorAddNoUnroll(float *a, float *b, float *c, int n) {
     int tid = blockIdx.x * blockDim.x + threadIdx.x;
-    
+
     if (tid < n) {
         float sum = 0;
         for (int j = 0; j < LOOP_COUNT; j++) {
@@ -25,10 +25,10 @@ __global__ void vectorAddNoUnroll(float *a, float *b, float *c, int n) {
 // Kernel with loop unrolling using #pragma unroll
 __global__ void vectorAddUnroll(float *a, float *b, float *c, int n) {
     int tid = blockIdx.x * blockDim.x + threadIdx.x;
-    
+
     if (tid < n) {
         float sum = 0;
-        #pragma unroll
+#pragma unroll
         for (int j = 0; j < LOOP_COUNT; j++) {
             sum += a[tid] + b[tid];
         }
@@ -48,7 +48,8 @@ bool verifyResults(float *c, int n) {
 }
 
 // Function to run kernel and measure time
-float runKernel(void (*kernel)(float*, float*, float*, int), float *d_a, float *d_b, float *d_c, int n) {
+float runKernel(void (*kernel)(float *, float *, float *, int), float *d_a, float *d_b, float *d_c,
+                int n) {
     int numBlocks = (n + THREADS_PER_BLOCK - 1) / THREADS_PER_BLOCK;
     cudaEvent_t start, stop;
     float milliseconds;
@@ -73,9 +74,9 @@ int main() {
     size_t size = N * sizeof(float);
 
     // Allocate host memory
-    a = (float*)malloc(size);
-    b = (float*)malloc(size);
-    c = (float*)malloc(size);
+    a = (float *)malloc(size);
+    b = (float *)malloc(size);
+    c = (float *)malloc(size);
 
     // Initialize host arrays
     for (int i = 0; i < N; i++) {
@@ -121,8 +122,12 @@ int main() {
     }
 
     // Clean up
-    free(a); free(b); free(c);
-    cudaFree(d_a); cudaFree(d_b); cudaFree(d_c);
+    free(a);
+    free(b);
+    free(c);
+    cudaFree(d_a);
+    cudaFree(d_b);
+    cudaFree(d_c);
 
     return 0;
 }

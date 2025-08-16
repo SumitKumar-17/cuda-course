@@ -1,16 +1,16 @@
+#include <cuda_runtime.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <time.h>
-#include <cuda_runtime.h>
 
-#define M 256  // Number of rows in A and C
-#define K 512   // Number of columns in A and rows in B
-#define N 256  // Number of columns in B and C
+#define M 256 // Number of rows in A and C
+#define K 512 // Number of columns in A and rows in B
+#define N 256 // Number of columns in B and C
 #define BLOCK_SIZE 32
 
 // Example 3x2 @ 2x4 = 3x4 -> (M x K) @ (K x N) = (M x N)
-// A = [[1, 2], 
-//      [3, 4], 
+// A = [[1, 2],
+//      [3, 4],
 //      [5, 6]]
 
 // B = [[7, 8, 9, 10],
@@ -23,7 +23,6 @@
 // C = [[29, 32, 35, 38],
 //      [65, 72, 79, 86],
 //      [101, 112, 123, 134]]
-
 
 // CPU matrix multiplication
 void matmul_cpu(float *A, float *B, float *C, int m, int k, int n) {
@@ -74,10 +73,10 @@ int main() {
     int size_C = M * N * sizeof(float);
 
     // Allocate host memory
-    h_A = (float*)malloc(size_A);
-    h_B = (float*)malloc(size_B);
-    h_C_cpu = (float*)malloc(size_C);
-    h_C_gpu = (float*)malloc(size_C);
+    h_A = (float *)malloc(size_A);
+    h_B = (float *)malloc(size_B);
+    h_C_cpu = (float *)malloc(size_C);
+    h_C_gpu = (float *)malloc(size_C);
 
     // Initialize matrices
     srand(time(NULL));

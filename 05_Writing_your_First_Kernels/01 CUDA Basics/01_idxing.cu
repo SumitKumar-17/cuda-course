@@ -1,4 +1,5 @@
 #include <stdio.h>
+#include <cuda_runtime.h>
 
 __global__ void whoami(void) {
     int block_id = blockIdx.x +             // apartment number on this floor (points across)
@@ -12,6 +13,7 @@ __global__ void whoami(void) {
     int thread_offset =
         threadIdx.x + threadIdx.y * blockDim.x + threadIdx.z * blockDim.x * blockDim.y;
 
+        // this is the global id which is of all the threads in all the blocks
     int id = block_offset + thread_offset; // global person id in the entire apartment complex
 
     printf("%04d | Block(%d %d %d) = %3d | Thread(%d %d %d) = %3d\n", id, blockIdx.x, blockIdx.y,
@@ -22,7 +24,10 @@ __global__ void whoami(void) {
 }
 
 int main(int argc, char **argv) {
+    // b stands for blocks
     const int b_x = 2, b_y = 3, b_z = 4;
+    
+    // t means threads
     const int t_x = 4, t_y = 4, t_z = 4; // the max warp size is 32, so
     // we will get 2 warp of 32 threads per block
 
@@ -37,5 +42,6 @@ int main(int argc, char **argv) {
     dim3 threadsPerBlock(t_x, t_y, t_z); // 3d cube of shape 4*4*4 = 64
 
     whoami<<<blocksPerGrid, threadsPerBlock>>>();
+    //synchronization between CPU and GPU
     cudaDeviceSynchronize();
 }

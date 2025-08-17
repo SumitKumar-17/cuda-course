@@ -41,6 +41,7 @@ double get_time() {
 }
 
 int main() {
+    // device and host are arays which are being allocated
     float *h_a, *h_b, *h_c_cpu, *h_c_gpu;
     float *d_a, *d_b, *d_c;
     size_t size = N * sizeof(float);
